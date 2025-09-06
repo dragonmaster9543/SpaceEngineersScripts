@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sandbox.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game.GUI.TextPanel;
@@ -31,7 +32,7 @@ namespace IngameScript
             public override void Update()
             {
                 base.Update();
-                if (AirlockState == AirlockState2.AwatingTotalLock)
+                if (AirlockState == AirlockState2.AwaitingTotalLock)
                 {
                     if (innerOpenRequest)
                     {
@@ -193,7 +194,7 @@ namespace IngameScript
                         innerOpenRequest = true;
                         SendLockRequest(components.inner);
                         SendLockRequest(components.outer);
-                        AirlockState = AirlockState2.AwatingTotalLock;
+                        AirlockState = AirlockState2.AwaitingTotalLock;
                     }
                 }
                 if (AirlockState == AirlockState2.OuterOpen)
@@ -217,7 +218,7 @@ namespace IngameScript
                         Depressurize(false);
                         SendLockRequest(components.inner);
                         SendLockRequest(components.outer);
-                        AirlockState = AirlockState2.AwatingTotalLock;
+                        AirlockState = AirlockState2.AwaitingTotalLock;
                     }
                 }
                 if (AirlockState == AirlockState2.InnerOpen)
@@ -239,7 +240,7 @@ namespace IngameScript
                     case AirlockState2.Neutral:
                         components.SetLightsIdle();
                         break;
-                    case AirlockState2.AwatingTotalLock:
+                    case AirlockState2.AwaitingTotalLock:
                         components.SetLightsWorking();
                         if (innerOpenRequest)
                         {
@@ -261,47 +262,47 @@ namespace IngameScript
                     case AirlockState2.Neutral:
                         if (errorStatus.Length > 0)
                         {
-                            components.statusDisplay.Update(errorStatus, true);
+                            components.statusDisplay.Update(errorStatus, Color.Red, true);
                         }
                         else
                         {
-                            components.statusDisplay.Update("Ready");
+                            components.statusDisplay.Update("Ready", components.neutral);
                         }
                         break;
-                    case AirlockState2.AwatingTotalLock:
-                        components.statusDisplay.Update("Locking doors");
+                    case AirlockState2.AwaitingTotalLock:
+                        components.statusDisplay.Update("Locking doors", components.working);
                         break;
                     case AirlockState2.Depressurizing:
-                        components.statusDisplay.Update("Depressurizing");
+                        components.statusDisplay.Update("Depressurizing", components.working);
                         break;
                     case AirlockState2.Pressurizing:
-                        components.statusDisplay.Update("Pressurizing");
+                        components.statusDisplay.Update("Pressurizing", components.working);
                         break;
                     case AirlockState2.OuterOpen:
                         if (errorStatus.Length > 0)
                         {
-                            components.statusDisplay.Update(errorStatus, true);
+                            components.statusDisplay.Update(errorStatus, Color.Red, true);
                         }
                         else
                         {
-                            components.statusDisplay.Update("Outer open");
+                            components.statusDisplay.Update("Outer open", components.working);
                         }
                         break;
                     case AirlockState2.InnerOpen:
                         if (errorStatus.Length > 0)
                         {
-                            components.statusDisplay.Update(errorStatus, true);
+                            components.statusDisplay.Update(errorStatus, Color.Red, true);
                         }
                         else
                         {
-                            components.statusDisplay.Update("Inner open");
+                            components.statusDisplay.Update("Inner open", components.working);
                         }
                         break;
                     case AirlockState2.Unknown:
-                        components.statusDisplay.Update("Setup in progress");
+                        components.statusDisplay.Update("Setup in progress", Color.White);
                         break;
                     default:
-                        components.statusDisplay.Update("No idea what's going on");
+                        components.statusDisplay.Update("No idea what's going on", Color.Red);
                         break;
                 }
             }
@@ -323,8 +324,8 @@ namespace IngameScript
             public List<IMyFunctionalBlock> farms = null;
             public List<IMyTimerBlock> outerTimers = null;
             public List<IMyTimerBlock> innerTimers = null;
-            Color neutral;
-            Color working;
+            public Color neutral;
+            public Color working;
 
             public AirlockComponents(
                 Program p,
@@ -452,6 +453,7 @@ namespace IngameScript
             PanelType[] types;
             public string airlockName = "";
             private string airlockType;
+            private static readonly Color DefaultColor = new Color(255,255,255,255);
 
             public AirlockStatusDisplay(Program p, IMyTextPanel panel, string airlockType)
             {
@@ -485,13 +487,19 @@ namespace IngameScript
                             if (panels[i].FontSize == 1f)
                             {
                                 panels[i].FontSize = 1.4f;
+                                panels[i].Alignment = TextAlignment.CENTER;
+                                panels[i].Font = "DEBUG";
+                                panels[i].FontColor = Color.Green;
                             }
                         }
                         else
                         {
                             if (panels[i].FontSize == 1f)
                             {
-                                panels[i].FontSize = 1.3f;
+                                panels[i].FontSize = 4.6f;
+                                panels[i].Alignment = TextAlignment.CENTER;
+                                panels[i].Font = "DEBUG";
+                                panels[i].FontColor = Color.Green;
                             }
                         }
                         types[i] = PanelType.Corner;
@@ -503,9 +511,10 @@ namespace IngameScript
                 }
             }
 
-            public void Update(string ventState, bool error = false)
+            public void Update(string ventState,  Color? textColor = null, bool error = false)
             {
                 string text = "";
+                textColor = textColor ?? DefaultColor;
                 for (int i = 0; i < panels.Length; i++)
                 {
                     if (text.Length == 0)
@@ -526,6 +535,7 @@ namespace IngameScript
                     }
                     panels[i].ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
                     panels[i].WriteText(text);
+                    panels[i].FontColor = (Color)textColor;
                 }
             }
         }
@@ -537,17 +547,15 @@ namespace IngameScript
             OuterOpen,
             Pressurizing,
             Depressurizing,
-            AwatingInnerLock,
-            AwatingOuterLock,
-            AwatingTotalLock,
+            AwaitingInnerLock,
+            AwaitingOuterLock,
+            AwaitingTotalLock,
             Unknown,
         }
 
         abstract class AirManagedAirlock
         {
             public AirlockComponents components;
-            public List<ExtendedDoor> outerLockRequest = new List<ExtendedDoor>();
-            public List<ExtendedDoor> innerLockRequest = new List<ExtendedDoor>();
             public bool outerChange = false;
             public bool innerChange = false;
             public bool ventChange = false;
@@ -651,7 +659,7 @@ namespace IngameScript
                     {
                         totalFillRatio = components.tanks[i].FilledRatio;
                     }
-                    totalFillRatio = totalFillRatio / components.tanks.Count;
+                    totalFillRatio /= components.tanks.Count;
                     if (totalFillRatio > .95)
                     {
                         tanksFullSkipDepressurization = true;
@@ -701,16 +709,6 @@ namespace IngameScript
                 {
                     InnerOpenCount--;
                 }
-            }
-
-            public void RequestLockOuter()
-            {
-                outerLockRequest.AddList(components.outer);
-            }
-
-            public void RequestLockInner()
-            {
-                innerLockRequest.AddList(components.inner);
             }
 
             public void EnableDoors(List<ExtendedDoor> doors, bool enabled)
@@ -1202,6 +1200,14 @@ namespace IngameScript
             public Hangar(AirlockComponents components)
                 : base(components)
             {
+                try
+                {
+                    components.secondsBeforeTimeout = (float)components.P.settings[ID.HangarTimeout].Value;
+                }
+                catch (KeyNotFoundException)
+                {
+                    // Ignored
+                }
                 foreach (var door in components.outer)
                 {
                     door.SubscribeFunc(OuterDoorAction);
@@ -1231,7 +1237,7 @@ namespace IngameScript
             public override void Update()
             {
                 base.Update();
-                if (AirlockState == AirlockState2.AwatingOuterLock)
+                if (AirlockState == AirlockState2.AwaitingOuterLock)
                 {
                     if (OuterOpenCount <= 0)
                     {
@@ -1242,7 +1248,7 @@ namespace IngameScript
                         AirlockState = AirlockState2.Pressurizing;
                     }
                 }
-                else if (AirlockState == AirlockState2.AwatingInnerLock)
+                else if (AirlockState == AirlockState2.AwaitingInnerLock)
                 {
                     if (InnerOpenCount <= 0)
                     {
@@ -1353,7 +1359,7 @@ namespace IngameScript
                         {
                             SendLockRequest(components.inner);
                             CloseAll(components.inner, true);
-                            AirlockState = AirlockState2.AwatingInnerLock;
+                            AirlockState = AirlockState2.AwaitingInnerLock;
                         }
                     }
                     else
@@ -1367,7 +1373,7 @@ namespace IngameScript
                         {
                             SendLockRequest(components.outer);
                             CloseAll(components.outer, true);
-                            AirlockState = AirlockState2.AwatingOuterLock;
+                            AirlockState = AirlockState2.AwaitingOuterLock;
                         }
                     }
                 }
@@ -1396,7 +1402,7 @@ namespace IngameScript
                         {
                             CloseAll(components.inner, true);
                             SendLockRequest(components.inner);
-                            AirlockState = AirlockState2.AwatingInnerLock;
+                            AirlockState = AirlockState2.AwaitingInnerLock;
                         }
                         else
                         {
@@ -1423,14 +1429,14 @@ namespace IngameScript
                     vent.Depressurize = false;
                     SendLockRequest(components.inner);
                     CloseAll(components.inner, true);
-                    AirlockState = AirlockState2.AwatingInnerLock;
+                    AirlockState = AirlockState2.AwaitingInnerLock;
                 }
                 else
                 {
                     vent.Depressurize = true;
                     SendLockRequest(components.outer);
                     CloseAll(components.outer, true);
-                    AirlockState = AirlockState2.AwatingOuterLock;
+                    AirlockState = AirlockState2.AwaitingOuterLock;
                 }
             }
 
@@ -1442,11 +1448,11 @@ namespace IngameScript
                     case AirlockState2.OuterOpen:
                         components.SetLightsIdle();
                         break;
-                    case AirlockState2.AwatingInnerLock:
+                    case AirlockState2.AwaitingInnerLock:
                         components.TriggerOuterTimers();
                         components.SetLightsWorking();
                         break;
-                    case AirlockState2.AwatingOuterLock:
+                    case AirlockState2.AwaitingOuterLock:
                         components.TriggerInnerTimers();
                         components.SetLightsWorking();
                         break;
@@ -1461,51 +1467,51 @@ namespace IngameScript
                     case AirlockState2.InnerOpen:
                         if (errorStatus.Length > 0)
                         {
-                            components.statusDisplay.Update(errorStatus, true);
+                            components.statusDisplay.Update(errorStatus, Color.Red, true);
                         }
                         else
                         {
                             if (components.P.inAtmo)
                             {
-                                components.statusDisplay.Update("Inner open - Atmo mode");
+                                components.statusDisplay.Update("Inner open - Atmo mode", components.neutral);
                             }
                             else
                             {
-                                components.statusDisplay.Update("Inner open");
+                                components.statusDisplay.Update("Inner open", components.neutral);
                             }
                         }
                         break;
                     case AirlockState2.OuterOpen:
                         if (errorStatus.Length > 0)
                         {
-                            components.statusDisplay.Update(errorStatus, true);
+                            components.statusDisplay.Update(errorStatus, Color.Red, true);
                         }
                         else
                         {
                             if (components.P.inAtmo)
                             {
-                                components.statusDisplay.Update("Outer open - Atmo mode");
+                                components.statusDisplay.Update("Outer open - Atmo mode", components.neutral);
                             }
                             else
                             {
-                                components.statusDisplay.Update("Outer open");
+                                components.statusDisplay.Update("Outer open", components.neutral);
                             }
                         }
                         break;
-                    case AirlockState2.AwatingOuterLock:
-                        components.statusDisplay.Update("Locking outer");
+                    case AirlockState2.AwaitingOuterLock:
+                        components.statusDisplay.Update("Locking outer", components.working);
                         break;
-                    case AirlockState2.AwatingInnerLock:
-                        components.statusDisplay.Update("Locking inner");
+                    case AirlockState2.AwaitingInnerLock:
+                        components.statusDisplay.Update("Locking inner", components.working);
                         break;
                     case AirlockState2.Pressurizing:
-                        components.statusDisplay.Update("Pressurizing");
+                        components.statusDisplay.Update("Pressurizing", components.working);
                         break;
                     case AirlockState2.Depressurizing:
-                        components.statusDisplay.Update("Depressurizing");
+                        components.statusDisplay.Update("Depressurizing", components.working);
                         break;
                     case AirlockState2.Unknown:
-                        components.statusDisplay.Update("Setup in progress");
+                        components.statusDisplay.Update("Setup in progress", Color.White);
                         break;
                     default:
                         break;
@@ -1575,6 +1581,7 @@ namespace IngameScript
                 { Str.AutoCloseDelayEntering, "Auto close delay entering (s)" },
                 { Str.AutoCloseDelayRegularDoors, "Auto close delay regular doors (s)" },
                 { Str.Timeout, "[Advanced] Timeout (s)" },
+                { Str.HangarTimeout, "[Advanced] Hangar Timeout (s)" },
                 { Str.EnableRegularDoors, "Auto close regular doors" },
                 { Str.EnableTinyAirlocks, "Enable Tiny Airlocks" },
                 { Str.EnableSmartAirlocks, "Enable Smart Airlocks" },
@@ -1600,7 +1607,7 @@ namespace IngameScript
                 { Str.SeeCustomData, "Settings: See custom data." },
                 {
                     Str.ArgumentNotUnderstood,
-                    "was not understood. Avalible arguments are: 'update', 'atmo', 'atmo on', 'atmo off'."
+                    "was not understood. Available arguments are: 'update', 'atmo', 'atmo on', 'atmo off'."
                 },
                 { Str.InAtmo, "Atmosphere mode enabled" },
                 { Str.InAtmoDisableAltitude, "Auto disable atmo mode above (m)" },
@@ -1615,12 +1622,10 @@ namespace IngameScript
                 { ID.HangarTag, new Setting(strings[Str.HangarTag], "#Hangar") },
                 { ID.IgnoreTag, new Setting(strings[Str.IgnoreTag], "#Ignore") },
                 { ID.ManualTag, new Setting(strings[Str.ManualTag], "#Manual") },
-                {
-                    ID.AutoCloseDelayEntering,
-                    new Setting(strings[Str.AutoCloseDelayEntering], 0.5f, 1)
-                },
+                { ID.AutoCloseDelayEntering, new Setting(strings[Str.AutoCloseDelayEntering], 0.5f, 1) },
                 { ID.AutoCloseDelayExiting, new Setting(strings[Str.AutoCloseDelayExiting], 2.0f) },
                 { ID.Timeout, new Setting(strings[Str.Timeout], 2f) },
+                { ID.HangarTimeout, new Setting(strings[Str.HangarTimeout], 12f) },
                 { ID.OxygenDifference, new Setting(strings[Str.OxygenDifference], 20f) },
                 { ID.EnableRegularDoors, new Setting(strings[Str.EnableRegularDoors], true, 1) },
                 { ID.DefaultLampColor, new Setting(strings[Str.DefaultLampColor], Color.Green, 1) },
@@ -1665,6 +1670,9 @@ namespace IngameScript
             Hangars.Clear();
             SimpleGroupAirlocks.Clear();
             StatusLCDs.Clear();
+            IMyTextSurface display = Me.GetSurface(0);
+            display.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
+            display.FontSize = 0.95f;
             var allBlocks = new List<IMyTerminalBlock>();
             var allDoors = new List<IMyDoor>();
             var allVents = new List<IMyAirVent>();
@@ -1707,6 +1715,8 @@ namespace IngameScript
                 {
                     if (OverInstructionLimit())
                         yield return true;
+                    if (General.HasTag(ignoreTag, group.Name))
+                        continue;
                     bool hasHangarTag = false;
                     var blocks = new List<IMyTerminalBlock>();
                     var outer = new List<IMyDoor>();
@@ -1766,10 +1776,7 @@ namespace IngameScript
                         }
                         else if (block is IMyGasTank)
                         {
-                            if (block.BlockDefinition.SubtypeId == "")
-                            {
-                                tanks.Add(block as IMyGasTank);
-                            }
+                            tanks.Add(block as IMyGasTank);
                         }
                         else if (block is IMyGasGenerator)
                         {
@@ -2192,7 +2199,7 @@ namespace IngameScript
 
         public void Main(string argument, UpdateType updateType)
         {
-            Time = Time + Runtime.TimeSinceLastRun;
+            Time += Runtime.TimeSinceLastRun;
             runCount++;
             if (!Initialized)
             {
@@ -2324,6 +2331,8 @@ namespace IngameScript
             }
             finalDetailedInfoText += "\n" + detailedInfoText;
             Echo(finalDetailedInfoText);
+            IMyTextSurface display = Me.GetSurface(0);
+            display.WriteText(finalDetailedInfoText);
             if (debugLCD != null)
             {
                 debugLCD.WriteText(finalDetailedInfoText);
@@ -2472,6 +2481,7 @@ namespace IngameScript
             AutoCloseDelayEntering,
             AutoCloseDelayRegularDoors,
             Timeout,
+            HangarTimeout,
             AirlockTag,
             HangarTag,
             SensorTag,
@@ -2496,6 +2506,7 @@ namespace IngameScript
             AutoCloseDelayEntering,
             AutoCloseDelayRegularDoors,
             Timeout,
+            HangarTimeout,
             AirlockTag,
             HangarTag,
             SensorTag,
