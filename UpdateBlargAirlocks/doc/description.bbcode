@@ -1,0 +1,80 @@
+Automatic and super easy airlocks!
+
+Normal doors are opened by clicking on them, airlocks should be too.
+This one gives you super easy setup and usage. No complicated groupings or naming schemes. No armada of buttons.
+
+
+[h1]Latest update (2020-08-27)[/h1]
+Fixed Tiny airlocks being directional and Frostbite Gates behaving like normal doors.
+
+
+
+[img]SE Font Important.png[/img]
+[img]Aggressive Airlocks Update Argument.png[/img]
+
+After you've made any changes, like adding airlocks or changing settings, you need send the update command to the script. Do that by typing [i]update[/i] in the argument field of the programmable block and press Run
+
+[img]SE Font Tags.png[/img]
+[img]Aggressive Airlocks Sample Outer Door Tag.png[/img]
+
+Tags help you define airlocks. They are entered in the name of the blocks.
+All tags can be changed in the settings, but these are the defaults:
+
+[list]
+[*] [b]#AL[/b] - Marks the outside door(s) in an airlock.
+[*] [b]#Hangar[/b] - Marks the outside doors(s) in a hangar.
+[*] [b]#Ignore[/b] - Excludes the block from the script, even if it's defined as part of an airlock.
+[*] [b]#Manual[/b] - Stops the automatic opening and closing* of a door.
+    *[i]Except for cycling of a hangar[/i].
+[/list]
+
+[img]SE Font Airlock Types.png[/img]
+
+By the way, all doors close themselves, even if unrelated to airlocks.
+
+[b]Lossy airlocks[/b]
+[img]Aggressive Airlocks Lossy Airlocks.png[/img]
+
+Airlocks without air vents. They don't manage air themselves, but prevents your ship from having a gaping hole into space.
+
+[list]
+[*] [b]Tiny airlock[/b]: Two doors in a line, touching.
+[*] [b]Simple group[/b]: Group 2+ doors, tag one or more with #AL.
+
+[b]Active airlocks[/b]
+[img]Aggressive Airlocks Active Airlocks.png[/img]
+
+Airlocks with air vents. They actively pressurize and depressurize as you go through them.
+
+[list]
+[*] [b]Smart airlock[/b]: Place two doors and an air vent. Tag the outside door with #AL.
+[*] [b]Group airlock[/b]: Place 2+ doors and 1+ air vents. Tag the outside door(s) with #AL. Put it all in a group (name doesn't matter).
+[*] [b]Hangar[/b]: Same as Group airlock, but using the #Hangar tag instead. Inner doors are not required. Control by setting the depressurization state of an air vent. Easiest is adding '[i]Depressurize on/off[/i]' to a button.
+[img]Aggressive Airlocks Sample Depressurize Config.png[/img]
+[/list]
+
+The [i]Group airlock[/i] and [i]Hangar[/i] can also control lights, LCDs, oxygen tanks, gas generators, and oxygen farms within the group.
+
+All airlock types except [i]Tiny airlock[/i] are shapeless, i.e; they don't need to be built exactly like in the pictures.
+
+And remember, after building an airlock you need to tell the script about it by sending the '[i]update[/i]' command.
+Simply write '[i]update[/i]' in the Argument field of the programmable block and press Run.
+
+[img]SE Font Setup.png[/img]
+
+Place a programmable block.
+Add the script from the workshop. ([Edit] -> [Browse scripts]-> [i]Select the script[/i]-> [Copy to editor] - > [Ok])
+It will start automatically.
+
+[img]SE Font Settings.png[/img]
+To change any, enter Custom data of the programmable block, edit the values, then send the update command (type update in the argument field and press run).
+
+[img]SE Font Oxygen Management.png[/img]
+It's recommended that the air system in your ship is separate from the rest of your conveyor system, if you have any hydrogen production.
+
+Active airlocks requires oxygen tanks that aren't empty but also aren't full to operate. However, there are safeguards built in that cancels the (de)pressurization and opens the doors if there's a problem.
+Group airlocks and hangars can manage the oxygen levels of oxygen tanks, O2/H2 generators, and/or oxygen farms are included in their groups. They can even scoop air out of the atmosphere if needed.
+
+[b]Atmosphere mode[/b]
+If an active airlock detects atmosphere when you're heading inside, it will switch to atmosphere mode. This mode skips depressurization, preventing overfilling of your oxygen tanks.
+This mode isn't shared between airlocks, meaning that you could put an airlock between your ship and your hangar, having it work as expected both when the hangar is pressurized and when it's not.
