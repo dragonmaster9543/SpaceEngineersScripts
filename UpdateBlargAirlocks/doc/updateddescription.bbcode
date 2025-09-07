@@ -1,0 +1,33 @@
+Update of Blarg's Aggressive Airlocks!
+
+The original script can be found here:
+
+https://steamcommunity.com/sharedfiles/filedetails/?id=1182013330
+
+For the release of the Apex Survival update, functioning airlocks are important both in space and on most planets.  Why not make them automatic?
+
+Add this script to a programmable block and it will configure simple lossy airlocks with no prompting.  More complex airlocks are supported with tags in the names and with groups.  See the original release for (excellent) documentation.
+
+[h2]Changelog:[/h2]
+
+[list]
+[*] Small grid small oxygen tank is now supported.
+[*] Hangars now have a separate timeout setting.
+[*] Groups named with the configured ignore tag will be ignored.
+[*] Corner LCD settings are updated automatically to make them readable.
+[*] LCD text is color coded using the neutral and active colors using the configured settings.
+[*] The summary text of script setup is written to the large display of the programmable block.
+[/list]
+
+[h2]Notes:[/h2]
+
+To get the new hangar timeout when updating the script from the old version, the script must be reinitialized.  Use the '[i]update[/i]' argument and the '[i]Run[/i]' button to create and load the new setting.  Without reinitializing, the script will continue to use the standard airlock timeout.
+Loading the script into a brand new programmable block does not have this complication.
+
+The lack of support for the small grid small oxygen tank appeared to be an attempt to avoid adding things that look like tanks but aren't.  I haven't found the troublesome block yet.  If anyone does, please let me know and I'll come up with a more robust mechanism to find qualified tanks.
+
+[h2]Source Code:[/h2]
+
+The source code for this release can be found on Github:
+
+https://github.com/dragonmaster9543/SpaceEngineersScripts
