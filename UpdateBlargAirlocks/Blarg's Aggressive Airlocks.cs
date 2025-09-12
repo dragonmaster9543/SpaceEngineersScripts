@@ -482,25 +482,12 @@ namespace IngameScript
                     }
                     if (panels[i].BlockDefinition.SubtypeId.Contains("Corner"))
                     {
-                        if (panels[i].BlockDefinition.SubtypeId.Contains("Flat"))
+                        if (panels[i].FontSize == 1f)
                         {
-                            if (panels[i].FontSize == 1f)
-                            {
-                                panels[i].FontSize = 1.4f;
-                                panels[i].Alignment = TextAlignment.CENTER;
-                                panels[i].Font = "DEBUG";
-                                panels[i].FontColor = Color.Green;
-                            }
-                        }
-                        else
-                        {
-                            if (panels[i].FontSize == 1f)
-                            {
-                                panels[i].FontSize = 4.6f;
-                                panels[i].Alignment = TextAlignment.CENTER;
-                                panels[i].Font = "DEBUG";
-                                panels[i].FontColor = Color.Green;
-                            }
+                            panels[i].FontSize = 4.6f;
+                            panels[i].Alignment = TextAlignment.CENTER;
+                            panels[i].Font = "DEBUG";
+                            panels[i].FontColor = Color.Green;
                         }
                         types[i] = PanelType.Corner;
                     }
